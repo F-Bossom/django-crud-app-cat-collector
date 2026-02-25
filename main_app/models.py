@@ -14,3 +14,28 @@ class Cat(models.Model):
     
     def get_absolute_url(self):
         return reverse('cat-detail', kwargs={'pk': self.id})
+    
+MEALS = (
+    ('B', 'Breakfast'),
+    ('L', 'Lunch'),
+    ('D', 'Dinner'),
+)
+    
+class Feeding(models.Model):
+    date = models.DateField("Feeding Date")
+    meal = models.CharField(
+        verbose_name="Meal:",
+        max_length=1,
+        choices=MEALS, # this works like a enum and provides choices
+        default=MEALS[0][0] 
+        ) # (B,L,D Breakfast, Lunch, Dinner)
+    
+    # setting up a relationship - one to many
+    # we can use the models.ForeignKey(Table_To_Ref, on_delete=models.cascade
+    # models.CASCADE tells django if the parent cat is deleted, 
+    # then delete all the related feedings to that cat
+    cat = models.ForeignKey(Cat, on_delete=models.CASCADE, related_name='feedings')
+    # this Feeding will show up under the cat on feeding_set  or modelName_set
+
+    def __str__(self):
+        return f"{self.get_meal_display()} on {self.date}"

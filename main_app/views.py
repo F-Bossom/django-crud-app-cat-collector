@@ -1,7 +1,8 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from .models import Cat
 from django.views.generic import ListView, DetailView
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
+from .forms import FeedingForm
 
 # class Cat:
 #     def __init__(self, name, breed, description, age):
@@ -25,9 +26,30 @@ def home(request):
 def about(request):
     return render(request, 'about.html')
 
-def cat_index(request):
-    cats = Cat.objects.all()
-    return render(request, 'cats/index.html', {'cats': cats})
+def cat_index(request, pk):
+    cats = Cat.objects.all(pk)
+
+    return render(request, 'cats/detail.html', {
+        'cat': cats,
+    })
+
+def cat_detail(request, pk):
+    cats = Cat.objects.get(id=pk)
+    feeding_form = FeedingForm() # new instance of the form
+
+    return render(request, 'cats/detail.html', {
+        'cat': cats,
+        'feeding_form': feeding_form, # pass the form to the template
+        # 'toys': toys_cat_doesnt_have
+    })
+
+def add_feeding(request, cat_id):
+    form = FeedingForm(request.POST)
+    if form.is_valid():
+        new_feeding = form.save(commit=False)
+        new_feeding.cat_id = cat_id
+        new_feeding.save()
+    return redirect('cat-detail', pk=cat_id)
 
 # CBV Class Based Views
 

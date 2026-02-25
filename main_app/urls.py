@@ -7,7 +7,8 @@ urlpatterns = [
     # path('cats/', views.cat_index, name='cat-index'),
     path('cats/', views.CatList.as_view(), name='cat-index'),
     path('cats/create', views.CatCreate.as_view(), name='cat-create' ),
-    path('cats/<int:pk>', views.CatDetail.as_view(), name='cat-detail'),
+    path('cats/<int:pk>', views.cat_detail, name='cat-detail'),
+    path('cats/<int:cat_id>/add-feeding/', views.add_feeding, name='add_feeding'),
     path('cats/<int:pk>/update', views.CatUpdate.as_view(), name='cat-update'),
     path('cats/<int:pk>/delete', views.CatDelete.as_view(), name='cat-delete'),
 ]
