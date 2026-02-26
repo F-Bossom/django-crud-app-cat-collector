@@ -1,8 +1,10 @@
 from django.shortcuts import render, redirect
-from .models import Cat
+from .models import Cat, Toy # * imports everything
 from django.views.generic import ListView, DetailView
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
 from .forms import FeedingForm
+from django.urls import reverse
+
 
 # class Cat:
 #     def __init__(self, name, breed, description, age):
@@ -36,11 +38,12 @@ def cat_index(request, pk):
 def cat_detail(request, pk):
     cats = Cat.objects.get(id=pk)
     feeding_form = FeedingForm() # new instance of the form
+    toys = Toy.objects.exclude(id__in = cats.toy.all().values_list('id'))
 
     return render(request, 'cats/detail.html', {
         'cat': cats,
         'feeding_form': feeding_form, # pass the form to the template
-        # 'toys': toys_cat_doesnt_have
+        'toys': toys # this should show toys the cat does not own
     })
 
 def add_feeding(request, cat_id):
@@ -50,6 +53,11 @@ def add_feeding(request, cat_id):
         new_feeding.cat_id = cat_id
         new_feeding.save()
     return redirect('cat-detail', pk=cat_id)
+
+def associate_toy(request, cat_id, toy_id):
+    Cat.objects.get(id=cat_id).toy.add(toy_id)
+    return redirect('cat-detail', pk=cat_id)
+
 
 # CBV Class Based Views
 
@@ -94,3 +102,25 @@ class CatDelete(DeleteView):
 class CatUpdate(UpdateView):
     model=Cat
     fields=['breed', 'description', 'age']
+
+
+# Get /toy/create and Post /toy/create
+class ToyCreate(CreateView):
+    model = Toy
+    fields= "__all__"
+
+class ToyDetail(DetailView):
+    model = Toy
+    template_name = 'toys/detail.html'
+
+class ToyList(ListView):
+    model = Toy
+    template_name = 'toys/index.html'
+
+class ToyUpdate(UpdateView):
+    model = Toy
+    fields = ['name', 'color']
+
+class ToyDelete(DeleteView):
+    model = Toy
+    success_url = '/toys/'

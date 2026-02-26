@@ -44,6 +44,8 @@
             <button type="submit" class="btn submit">Add Feeding</button>
 
         </form>
+        {% if cat.feedings.all.count %}
+
     <table>
       <thead>
         <tr>
@@ -53,14 +55,51 @@
       </thead>
       <tbody>
         {% for feeding in cat.feedings.all %}
-          <tr>
-            <td>{{feeding.date}}</td>
-            <td>{{feeding.get_meal_display}}</td>
-          </tr>
+        <tr>
+          <td>{{feeding.date}}</td>
+          <td>{{feeding.get_meal_display}}</td>
+        </tr>
         {% endfor %}
       </tbody>
     </table>
+    {% else %}
+    <div class="subsection-content">
+      <p>⚠️ {{cat.name}} has not been fed!</p>
+    </div>
+    {% endif %}
   </section>
+</div>
+
+<section class="feedings">
+  <!-- This is a long section -->
+</section>
+
+<section class="toys">
+  <div class="subsection-title">
+    <h2>Toys</h2>
+    <img src="{% static 'images/string.svg' %}" alt="A ball of string" />
+    <img src="{% static 'images/mouse.svg' %}" alt="A mouse" />
+    <img src="{% static 'images/fish.svg' %}" alt="A fishy toy" />
+  </div>
+
+<h3>Available Toys</h3>
+  <div class="subsection-content">
+  {% if toys.count %} 
+    {% for toy in toys.all %}
+      <div class="toy-container">
+        <div class="color-block" style="background-color: {{ toy.color }}"></div>
+        <a href="{% url 'toy_detail' toy.id %}">
+          <p>A {{ toy.color }} {{ toy.name }}</p>
+        </a>
+        <form action="{% url 'associate-toy' cat.id toy.id %}" method="post">
+          {% csrf_token %}
+          <button type="submit" class="btn submit">Give toy</button>
+        </form>
+      </div>
+    {% endfor %} 
+  {% else %}
+    <p class="all-toys">{{cat.name}} already has all the available toys 🥳</p>
+  {% endif %}
 </div>
 
 {% endblock %}

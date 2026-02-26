@@ -1,6 +1,17 @@
 # This has instructions on how to be a django model
 from django.db import models
 from django.urls import reverse
+# Create your models here.
+
+class Toy(models.Model):
+    name = models.CharField(max_length=50)
+    color = models.CharField(max_length=20)
+
+    def __str__(self):
+        return self.name
+    
+    def get_absolute_url(self):
+        return reverse("toy_detail", kwargs={"pk": self.pk})
 
 # we make a new class and inherit all those django model instructions
 class Cat(models.Model):
@@ -8,12 +19,13 @@ class Cat(models.Model):
     breed = models.CharField(max_length=100)
     description = models.TextField(max_length=250)
     age = models.IntegerField()
+    toy = models.ManyToManyField(Toy) #should have been toys
 
     def __str__(self):
         return f"A Cat named {self.name} that is {self.age} years old."
     
     def get_absolute_url(self):
-        return reverse('cat-detail', kwargs={'pk': self.id})
+        return reverse('cat_detail', kwargs={'pk': self.id})
     
 MEALS = (
     ('B', 'Breakfast'),
@@ -39,3 +51,6 @@ class Feeding(models.Model):
 
     def __str__(self):
         return f"{self.get_meal_display()} on {self.date}"
+    
+    class Meta:
+        ordering = ['-date']
