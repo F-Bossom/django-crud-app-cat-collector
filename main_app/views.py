@@ -4,7 +4,10 @@ from django.views.generic import ListView, DetailView
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
 from .forms import FeedingForm
 from django.urls import reverse
-
+from django.contrib.auth.views import LoginView
+from django.contrib.auth import login
+from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.decorators import login_required
 
 # class Cat:
 #     def __init__(self, name, breed, description, age):
@@ -22,19 +25,30 @@ from django.urls import reverse
 # ]
 
 
-def home(request):
-    return render(request, 'home.html')
+# def home(request):
+#     return render(request, 'home.html')
+
+class Home(LoginView):
+    template_name = 'home.html'
 
 def about(request):
     return render(request, 'about.html')
 
+@login_required
 def cat_index(request, pk):
+    cats = Cat.objects.all()
     cats = Cat.objects.all(pk)
-
     return render(request, 'cats/detail.html', {
         'cat': cats,
     })
 
+@login_required
+def my_cats_index(request):
+    #Filter to only show the users cats
+    cats = Cat.objects.filter(user=request.user)
+    return render(request, 'cats/index.html', {'object_list': cats})
+
+@login_required
 def cat_detail(request, pk):
     cats = Cat.objects.get(id=pk)
     feeding_form = FeedingForm() # new instance of the form
@@ -46,6 +60,7 @@ def cat_detail(request, pk):
         'toys': toys # this should show toys the cat does not own
     })
 
+@login_required
 def add_feeding(request, cat_id):
     form = FeedingForm(request.POST)
     if form.is_valid():
@@ -54,10 +69,16 @@ def add_feeding(request, cat_id):
         new_feeding.save()
     return redirect('cat-detail', pk=cat_id)
 
+@login_required
 def associate_toy(request, cat_id, toy_id):
     Cat.objects.get(id=cat_id).toy.add(toy_id)
     return redirect('cat-detail', pk=cat_id)
 
+@login_required
+def remove_toy(request, cat_id, toy_id):
+    cat = Cat.objects.get(id=cat_id)
+    cat.toy.remove(toy_id)
+    return redirect('cat-detail', cat_id=cat.id)
 
 # CBV Class Based Views
 
@@ -72,12 +93,8 @@ DetailView - show page
 # Listing
 class CatList(ListView):
     model = Cat
-    # By default Listview will look for a template in the path
-    #  <your_app_name>/<modelname>_list.html
-    #  AKA we made a templates/main_app/cal_list.html
-
-    # or we override that default by providing a new path
     template_name = 'cats/index.html'
+
 
 class CatCreate(CreateView):
     model = Cat
@@ -87,6 +104,9 @@ class CatCreate(CreateView):
     fields = ['name', 'breed', 'description', 'age']
     # success_url='/cats/'
 
+    def form_valid(self, form):
+        form.instance.user = self.request.user
+        return super().form_valid(form)
 
 # Detail
 class CatDetail(DetailView):
@@ -124,3 +144,26 @@ class ToyUpdate(UpdateView):
 class ToyDelete(DeleteView):
     model = Toy
     success_url = '/toys/'
+
+def signup(request):
+    error_message = ''
+
+    # request has a "method" on it was can use to check what type of request this is
+    if request.method == "POST":
+        # request also as request.POST === req.body
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            # save this user is the form is valid
+            user = form.save()
+            # Login a user using the login method from django auth
+            login(request, user)
+            # redirect to the index page
+            return redirect('cat-index')
+        else:
+            error_message = "Invalid sign up - try again"
+
+    form = UserCreationForm()
+    return render(request, 'signup.html', {
+        'form': form,
+        'error_message': error_message
+    })

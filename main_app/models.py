@@ -1,6 +1,7 @@
 # This has instructions on how to be a django model
 from django.db import models
 from django.urls import reverse
+from django.contrib.auth.models import User
 # Create your models here.
 
 class Toy(models.Model):
@@ -20,12 +21,13 @@ class Cat(models.Model):
     description = models.TextField(max_length=250)
     age = models.IntegerField()
     toy = models.ManyToManyField(Toy) #should have been toys
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
 
     def __str__(self):
         return f"A Cat named {self.name} that is {self.age} years old."
     
     def get_absolute_url(self):
-        return reverse('cat_detail', kwargs={'pk': self.id})
+        return reverse('cat-detail', kwargs={'pk': self.id})
     
 MEALS = (
     ('B', 'Breakfast'),

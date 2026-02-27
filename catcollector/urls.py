@@ -19,6 +19,7 @@ from django.urls import path,include
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('main_app.urls'))
+    path('', include('main_app.urls')),
+    path('accounts/', include('django.contrib.auth.urls'))
     # path('/users/, view.get_user, name='get_users') # this would handle Index show All user,  Post to create a new user
 ]
